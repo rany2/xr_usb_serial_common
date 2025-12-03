@@ -50,10 +50,10 @@ Installation
 
 * Alternativley install via DKMS
 
-    # cp -a ../$(basename $(pwd)) /usr/src/xr_usb_serial_common-1c
-    # dkms add -m xr_usb_serial_common -v 1c
-    # dkms build -m xr_usb_serial_common -v 1c
-    # dkms install -m xr_usb_serial_common -v 1c
+    # cp -a ../$(basename $(pwd)) /usr/src/xr_usb_serial_common-1g
+    # dkms add -m xr_usb_serial_common -v 1g
+    # dkms build -m xr_usb_serial_common -v 1g
+    # dkms install -m xr_usb_serial_common -v 1g
 
 
 * Ensure that the cdc-acm module is not loaded (assumig that it is not needed)
