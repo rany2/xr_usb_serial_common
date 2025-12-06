@@ -1341,9 +1341,6 @@ static int xr_usb_serial_probe(struct usb_interface *intf,
 	int combined_interfaces = 0;
 	struct device *tty_dev;
 	int rv = -ENOMEM;
-#ifdef CONFIG_GPIOLIB
-	int gpiochip_base;
-#endif
 
 	/* normal quirks */
 	quirks = (unsigned long)id->driver_info;
@@ -1749,43 +1746,20 @@ skip_countries:
 
 #ifdef CONFIG_GPIOLIB
 	/* Setup GPIO cotroller */
-	gpiochip_base = 0; 
-
 	xr_usb_serial->xr_gpio.owner		= THIS_MODULE;
 	xr_usb_serial->xr_gpio.label		= dev_name(&control_interface->dev);
 	xr_usb_serial->xr_gpio.direction_input	= xr_usb_gpio_dir_input;
 	xr_usb_serial->xr_gpio.get			= xr_usb_gpio_get;
 	xr_usb_serial->xr_gpio.direction_output	= xr_usb_gpio_dir_output;
 	xr_usb_serial->xr_gpio.set			= xr_usb_gpio_set;
-	xr_usb_serial->xr_gpio.base			= gpiochip_base;
+	xr_usb_serial->xr_gpio.base			= -1;
 	xr_usb_serial->xr_gpio.ngpio		= 10;
 	xr_usb_serial->xr_gpio.can_sleep	= 1;
 
 	rv = gpiochip_add(&xr_usb_serial->xr_gpio);
-
-	if (rv != 0) {
-		// gpiochip numbers not available, start from 0
-		xr_usb_serial->xr_gpio.base = 0;
-	}
-
-	while (rv != 0) {
-		xr_usb_serial->xr_gpio.base += 10;
-
-		if (xr_usb_serial->xr_gpio.base > 502) {
-		// max gpio number = 512
-		// we ran out of gpios??
-			break;
-		}
-		rv = gpiochip_add(&xr_usb_serial->xr_gpio);
-	}
 	xr_usb_serial->rv_gpio_created = rv;
-	if (rv == 0) {
-		dev_dbg(&xr_usb_serial->control->dev, "gpiochip%d added",
-			xr_usb_serial->xr_gpio.base);
-	} else {
-		dev_dbg(&xr_usb_serial->control->dev, "failed to add gpiochip\n");
-	}
-
+	if (rv < 0)
+		dev_err(&xr_usb_serial->control->dev, "gpiochip_add() failed.\n");
 #endif
 
 	return 0;
